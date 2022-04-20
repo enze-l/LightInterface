@@ -1,4 +1,4 @@
-import {XAxis, YAxis, Area, Label, ComposedChart} from "recharts";
+import {XAxis, YAxis, Area, Label, ComposedChart, Line, Legend} from "recharts";
 import {Box, Slider} from "@mui/material";
 import axios from "axios";
 import React from "react";
@@ -6,24 +6,43 @@ import React from "react";
 const serverAddress = "http://localhost:3000"
 const textColor = "#6B7280"
 const graphColor = "#ffffff"
+const maxValueColor = "#ffdd00"
+const currentValueColor = "#6faeff"
 const buttonStyle = "m-1 border border-gray-500 hover:bg-gray-700 text-gray-500 font-bold py-2 px-4 rounded-full"
 
 function App() {
     const [hundredValues, setHundredValues] = React.useState([])
     const [brightnessValue, setBrightnessValue] = React.useState(0)
 
+    function getHundredValues() {
+        return axios.get(serverAddress + "/sensor/100")
+    }
+
+    function getCurrentDisplayBrightness() {
+        return axios.get(serverAddress + "/display/brightness")
+    }
+
+    function getCurrentSensorBrightness() {
+        return axios.get(serverAddress + "/sensor")
+    }
+
+    function getMaxBrightness() {
+        return axios.get(serverAddress + "/sensor/max")
+    }
+
     React.useEffect(() => {
-        axios.get(serverAddress + "/sensor/100")
-            .then(res => {
-                const array = String(res.data).split(/(\s+)/).filter(e => e.trim().length > 0)
-                setHundredValues(convertArrayToObjects(array))
-            })
-        axios.get(serverAddress + "/display/brightness")
-            .then(res => {
-                const value = res.data * 100
-                setBrightnessValue(value)
-                console.log("Current brightness value = " + res.data)
-            })
+        Promise.all(
+            [getHundredValues(), getCurrentDisplayBrightness(), getMaxBrightness(), getCurrentSensorBrightness()]
+        ).then((results) => {
+            const hundredValues = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
+            const currentDisplayBrightness = results[1].data * 100
+            const maxBrightness = results[2].data
+            const currentSensorLevel = results[3].data
+            setHundredValues(
+                convertArrayToObjects(hundredValues, maxBrightness, currentSensorLevel)
+            )
+            setBrightnessValue(currentDisplayBrightness)
+        })
     }, [])
 
     function setBrightness(dataPercent) {
@@ -32,9 +51,11 @@ function App() {
         })
     }
 
-    function convertArrayToObjects(array) {
+    function convertArrayToObjects(array, max, current) {
         let objectArray = []
-        array.forEach(element => objectArray.push({name: element.index + 1, x: element}))
+        array.forEach(
+            element => objectArray.push({brightness: element.day + 1, day: element, current: current, max: max})
+        )
         return objectArray
     }
 
@@ -54,8 +75,11 @@ function App() {
                             <Label angle={-90} value="Brightness" fill={textColor} position='insideLeft'
                                    style={{textAnchor: 'middle'}}/>
                         </YAxis>
-                        <XAxis dataKey="name" stroke={textColor}/>
-                        <Area dot={false} type="monotone" dataKey="x" stroke={textColor} fill="url(#brightness)"/>
+                        <Legend/>
+                        <XAxis dataKey="brightness" stroke={textColor}/>
+                        <Area dot={false} type="monotone" dataKey="day" stroke={textColor} fill="url(#brightness)"/>
+                        <Line dot={false} type="monotone" dataKey="max" stroke={maxValueColor}/>
+                        <Line dot={false} type="monotone" dataKey="current" stroke={currentValueColor}/>
                     </ComposedChart>
                     <Box width={500}>
                         <Slider
