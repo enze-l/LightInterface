@@ -12,7 +12,8 @@ const buttonStyle = "m-1 border border-gray-500 hover:bg-gray-700 text-gray-500 
 
 function App() {
     const [hundredValues, setHundredValues] = React.useState([])
-    const [brightnessValue, setBrightnessValue] = React.useState(0)
+    const [displayBrightnessRange, setDisplayBrightnessRange] = React.useState([10, 100])
+    const [sensorBrightnessRange, setSensorBrightnessRange] = React.useState([1, 500])
 
     function getHundredValues() {
         return axios.get(serverAddress + "/sensor/100")
@@ -41,12 +42,12 @@ function App() {
             setHundredValues(
                 convertArrayToObjects(hundredValues, maxBrightness, currentSensorLevel)
             )
-            setBrightnessValue(currentDisplayBrightness)
+            setDisplayBrightnessRange([20, currentDisplayBrightness])
         })
     }, [])
 
     function setBrightness(dataPercent) {
-        axios.post(serverAddress + "/display/brightness", dataPercent / 100).then(res => {
+        axios.post(serverAddress + "/display/brightness", dataPercent[1] / 100).then(res => {
             console.log(dataPercent)
         })
     }
@@ -64,23 +65,37 @@ function App() {
             <header className="App-header min-h-screen bg-gray-800">
                 <div className="grid place-items-center">
                     <p className="m-8 mt-9  text-4xl text-gray-500">Brightness-Control</p>
-                    <ComposedChart width={500} height={300} data={hundredValues}>
-                        <defs>
-                            <linearGradient id="brightness" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={graphColor} stopOpacity={0.8}/>
-                                <stop offset="95%" stopColor={graphColor} stopOpacity={0}/>
-                            </linearGradient>
-                        </defs>
-                        <YAxis stroke={textColor}>
-                            <Label angle={-90} value="Brightness" fill={textColor} position='insideLeft'
-                                   style={{textAnchor: 'middle'}}/>
-                        </YAxis>
-                        <Legend/>
-                        <XAxis dataKey="brightness" stroke={textColor}/>
-                        <Area dot={false} type="monotone" dataKey="day" stroke={textColor} fill="url(#brightness)"/>
-                        <Line dot={false} type="monotone" dataKey="max" stroke={maxValueColor}/>
-                        <Line dot={false} type="monotone" dataKey="current" stroke={currentValueColor}/>
-                    </ComposedChart>
+                    <div className="flex flex-row">
+                        <ComposedChart width={500} height={300} data={hundredValues}>
+                            <defs>
+                                <linearGradient id="brightness" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={graphColor} stopOpacity={0.8}/>
+                                    <stop offset="95%" stopColor={graphColor} stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
+                            <YAxis stroke={textColor}>
+                                <Label angle={-90} value="Brightness" fill={textColor} position='insideLeft'
+                                       style={{textAnchor: 'middle'}}/>
+                            </YAxis>
+                            <Legend/>
+                            <XAxis dataKey="brightness" stroke={textColor}/>
+                            <Area dot={false} type="monotone" dataKey="day" stroke={textColor} fill="url(#brightness)"/>
+                            <Line dot={false} type="monotone" dataKey="max" stroke={maxValueColor}/>
+                            <Line dot={false} type="monotone" dataKey="current" stroke={currentValueColor}/>
+                        </ComposedChart>
+                        <div className="pl-2 pb-14 pt-1">
+                            <Slider
+                                size="small"
+                                min={0}
+                                max={500}
+                                orientation="vertical"
+                                aria-label="Small"
+                                valueLabelDisplay="auto"
+                                value={sensorBrightnessRange}
+                                onChange={(e, value) => setSensorBrightnessRange(value)}
+                            />
+                        </div>
+                    </div>
                     <Box width={500}>
                         <Slider
                             size="small"
@@ -88,8 +103,8 @@ function App() {
                             max={100}
                             aria-label="Small"
                             valueLabelDisplay="auto"
-                            value={brightnessValue}
-                            onChange={(e, value) => setBrightnessValue(value)}
+                            value={displayBrightnessRange}
+                            onChange={(e, value) => setDisplayBrightnessRange(value)}
                             onChangeCommitted={(e, value) => setBrightness(value)}
                         />
                     </Box>
