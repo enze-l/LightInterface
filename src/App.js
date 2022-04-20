@@ -18,6 +18,10 @@ function App() {
             })
     }, [])
 
+    function setBrightness(data){
+        axios.post(serverAddress + "/display/brightness", data).then()
+    }
+
     function convertArrayToObjects(array) {
         let objectArray = []
         array.forEach(element => objectArray.push({name: element.index + 1, x: element}))
@@ -35,10 +39,10 @@ function App() {
                         <Area dot={false} type="monotone" dataKey="x" stroke={textColor} fill={fillColor}/>
                     </AreaChart>
                     <div>
-                        <button className={buttonStyle}>
+                        <button className={buttonStyle} onClick={() => setBrightness(0.5)}>
                             Set 0.5
                         </button>
-                        <button className={buttonStyle}>
+                        <button className={buttonStyle} onClick={() => setBrightness(1)}>
                             Set 1.0
                         </button>
                     </div>
