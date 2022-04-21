@@ -1,70 +1,28 @@
 import {XAxis, YAxis, Area, Label, ComposedChart, Line, Legend} from "recharts";
-import {Box, Slider} from "@mui/material";
-import axios from "axios";
+import {Box, Dialog, Slider} from "@mui/material";
 import React from "react";
+import Sensor from "./sensor"
+import Display from "./display";
 
 const serverAddress = "http://localhost:3000"
 const textColor = "#6B7280"
 const graphColor = "#ffffff"
 const maxValueColor = "#ffdd00"
 const currentValueColor = "#6faeff"
+const sensor = new Sensor(serverAddress)
+const display = new Display(serverAddress)
 
 function App() {
     const [hundredValues, setHundredValues] = React.useState([])
     const [displayBrightnessRange, setDisplayBrightnessRange] = React.useState([10, 100])
     const [sensorBrightnessRange, setSensorBrightnessRange] = React.useState([1, 500])
 
-    //sensor values
-    function getHundredValues() {
-        return axios.get(serverAddress + "/sensor/100")
-    }
-    function getDayValues() {
-        return axios.get(serverAddress + "/sensor/day")
-    }
-    function getCurrentSensorBrightness() {
-        return axios.get(serverAddress + "/sensor")
-    }
-    function getMaxBrightness() {
-        return axios.get(serverAddress + "/sensor/max")
-    }
-    function setMinThreshold(value){
-        axios.post(serverAddress + "/sensor/threshold/min", value).then()
-    }
-    function getMinThreshold(){
-        return axios.get(serverAddress + "/sensor/threshold/min")
-    }
-    function setMaxThreshold(value){
-        axios.post(serverAddress + "/sensor/threshold/max", value).then()
-    }
-    function getMaxThreshold(){
-        return axios.get(serverAddress + "/sensor/threshold/max")
-    }
-
-    //client values
-    function getDisplayBrightness() {
-        return axios.get(serverAddress + "/display/brightness")
-    }
-    function setDisplayBrightness(dataPercent) {
-        axios.post(serverAddress + "/display/brightness", dataPercent[1] / 100).then()
-    }
-    function getDisplayMin() {
-        return axios.get(serverAddress + "/display/min")
-    }
-    function setDisplayMin(value){
-        axios.post(serverAddress + "/display/min", value).then()
-    }
-    function getDisplayMax() {
-        return axios.get(serverAddress + "/display/max")
-    }
-    function setDisplayMax(value){
-        axios.post(serverAddress + "/display/max", value).then()
-    }
-
-    
-
     React.useEffect(() => {
-        Promise.all(
-            [getHundredValues(), getDisplayBrightness(), getMaxBrightness(), getCurrentSensorBrightness()]
+        Promise.all([
+            sensor.getHundredValues(),
+            display.getBrightness(),
+            sensor.getMaxBrightness(),
+            sensor.getCurrentBrightness()]
         ).then((results) => {
             const hundredValues = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
             const currentDisplayBrightness = results[1].data * 100
@@ -130,7 +88,7 @@ function App() {
                                 valueLabelDisplay="auto"
                                 value={displayBrightnessRange}
                                 onChange={(e, value) => setDisplayBrightnessRange(value)}
-                                onChangeCommitted={(e, value) => setDisplayBrightness(value)}
+                                onChangeCommitted={(e, value) => display.setBrightness(value)}
                             />
                         </div>
                     </Box>
