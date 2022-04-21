@@ -7,8 +7,8 @@ export default class Display {
     getBrightness() {
         return axios.get(this.serverAddress + "/display/brightness")
     }
-    setBrightness(dataPercent) {
-        axios.post(this.serverAddress + "/display/brightness", dataPercent[1] / 100).then()
+    setBrightness(value) {
+        axios.post(this.serverAddress + "/display/brightness", value / 100).then()
     }
     getMinBrightness() {
         return axios.get(this.serverAddress + "/display/min")

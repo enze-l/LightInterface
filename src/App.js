@@ -16,6 +16,7 @@ function App() {
     const [hundredValues, setHundredValues] = React.useState([])
     const [displayBrightnessRange, setDisplayBrightnessRange] = React.useState([10, 100])
     const [sensorBrightnessRange, setSensorBrightnessRange] = React.useState([1, 500])
+    const [displayBrightness, setDisplayBrightness] = React.useState(50)
 
     React.useEffect(() => {
         Promise.all([
@@ -26,12 +27,14 @@ function App() {
             display.getMinThreshold(),
             display.getMaxBrightness(),
             display.getMinBrightness(),
+            display.getBrightness(),
         ]).then((results) => {
             const hundredValues = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
             const maxBrightness = results[1].data
             const currentSensorLevel = results[2].data
             setSensorBrightnessRange([results[4].data, results[3].data])
             setDisplayBrightnessRange([results[6].data, results[5].data])
+            setDisplayBrightness(results[7].data * 100)
             setHundredValues(convertArrayToObjects(hundredValues, maxBrightness, currentSensorLevel))
         })
     }, [])
@@ -72,7 +75,6 @@ function App() {
                                 min={0}
                                 max={500}
                                 orientation="vertical"
-                                aria-label="Small"
                                 valueLabelDisplay="auto"
                                 value={sensorBrightnessRange}
                                 onChange={(e, value) => setSensorBrightnessRange(value)}
@@ -89,13 +91,26 @@ function App() {
                                 size="small"
                                 min={10}
                                 max={100}
-                                aria-label="Small"
                                 valueLabelDisplay="auto"
                                 value={displayBrightnessRange}
                                 onChange={(e, value) => setDisplayBrightnessRange(value)}
                                 onChangeCommitted={(e, value) => {
                                     display.setMinBrightness(value[0])
                                     display.setMaxBrightness(value[1])
+                                }}
+                            />
+                        </div>
+                        <div className="pl-9 pr-8">
+                            <Slider
+                                size="small"
+                                track={false}
+                                min={10}
+                                max={100}
+                                valueLabelDisplay="auto"
+                                value={displayBrightness}
+                                onChange={(e, value) => setDisplayBrightness(value)}
+                                onChangeCommitted={(e, value) => {
+                                    display.setBrightness(value)
                                 }}
                             />
                         </div>
