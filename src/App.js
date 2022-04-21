@@ -1,5 +1,5 @@
 import {XAxis, YAxis, Area, Label, ComposedChart, Line, Legend} from "recharts";
-import {Box, Dialog, Slider} from "@mui/material";
+import {Box, Slider, createTheme} from "@mui/material";
 import React from "react";
 import Sensor from "./sensor"
 import Display from "./display";
@@ -11,6 +11,11 @@ const maxValueColor = "#ffdd00"
 const currentValueColor = "#6faeff"
 const sensor = new Sensor(serverAddress)
 const display = new Display(serverAddress)
+const muiTheme = createTheme({
+    slider: {
+        selectionColor: textColor
+    }
+})
 
 function App() {
     const [hundredValues, setHundredValues] = React.useState([])
@@ -104,6 +109,7 @@ function App() {
                             <Slider
                                 size="small"
                                 track={false}
+                                color={"secondary"}
                                 min={10}
                                 max={100}
                                 valueLabelDisplay="auto"
