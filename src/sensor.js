@@ -20,20 +20,4 @@ export default class Sensor {
     getMaxBrightness() {
         return axios.get(this.serverAddress + "/sensor/max")
     }
-
-    setMinThreshold(value) {
-        axios.post(this.serverAddress + "/sensor/threshold/min", value).then()
-    }
-
-    getMinThreshold() {
-        return axios.get(this.serverAddress + "/sensor/threshold/min")
-    }
-
-    setMaxThreshold(value) {
-        axios.post(this.serverAddress + "/sensor/threshold/max", value).then()
-    }
-
-    getMaxThreshold() {
-        return axios.get(this.serverAddress + "/sensor/threshold/max")
-    }
 }

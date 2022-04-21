@@ -22,4 +22,19 @@ export default class Display {
     setMaxBrightness(value){
         axios.post(this.serverAddress + "/display/max", value).then()
     }
+    setMinThreshold(value) {
+        axios.post(this.serverAddress + "/display/threshold/min", value).then()
+    }
+
+    getMinThreshold() {
+        return axios.get(this.serverAddress + "/display/threshold/min")
+    }
+
+    setMaxThreshold(value) {
+        axios.post(this.serverAddress + "/display/threshold/max", value).then()
+    }
+
+    getMaxThreshold() {
+        return axios.get(this.serverAddress + "/display/threshold/max")
+    }
 }

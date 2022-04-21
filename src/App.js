@@ -20,18 +20,19 @@ function App() {
     React.useEffect(() => {
         Promise.all([
             sensor.getHundredValues(),
-            display.getBrightness(),
             sensor.getMaxBrightness(),
-            sensor.getCurrentBrightness()]
-        ).then((results) => {
+            sensor.getCurrentBrightness(),
+            display.getMaxThreshold(),
+            display.getMinThreshold(),
+            display.getMaxBrightness(),
+            display.getMinBrightness(),
+        ]).then((results) => {
             const hundredValues = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
-            const currentDisplayBrightness = results[1].data * 100
-            const maxBrightness = results[2].data
-            const currentSensorLevel = results[3].data
-            setHundredValues(
-                convertArrayToObjects(hundredValues, maxBrightness, currentSensorLevel)
-            )
-            setDisplayBrightnessRange([20, currentDisplayBrightness])
+            const maxBrightness = results[1].data
+            const currentSensorLevel = results[2].data
+            setSensorBrightnessRange([results[4].data, results[3].data])
+            setDisplayBrightnessRange([results[6].data, results[5].data])
+            setHundredValues(convertArrayToObjects(hundredValues, maxBrightness, currentSensorLevel))
         })
     }, [])
 
@@ -75,6 +76,10 @@ function App() {
                                 valueLabelDisplay="auto"
                                 value={sensorBrightnessRange}
                                 onChange={(e, value) => setSensorBrightnessRange(value)}
+                                onChangeCommitted={(e, value) =>{
+                                    display.setMinThreshold(value[0])
+                                    display.setMaxThreshold(value[1])
+                                }}
                             />
                         </div>
                     </div>
@@ -88,7 +93,10 @@ function App() {
                                 valueLabelDisplay="auto"
                                 value={displayBrightnessRange}
                                 onChange={(e, value) => setDisplayBrightnessRange(value)}
-                                onChangeCommitted={(e, value) => display.setBrightness(value)}
+                                onChangeCommitted={(e, value) => {
+                                    display.setMinBrightness(value[0])
+                                    display.setMaxBrightness(value[1])
+                                }}
                             />
                         </div>
                     </Box>
