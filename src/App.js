@@ -1,5 +1,5 @@
-import {XAxis, YAxis, Area, Label, ComposedChart, Line, Legend} from "recharts";
-import {Box, Slider, createTheme} from "@mui/material";
+import {XAxis, YAxis, Area, Label, ComposedChart, Line} from "recharts";
+import {Box, Slider} from "@mui/material";
 import React from "react";
 import Sensor from "./sensor"
 import Display from "./display";
@@ -11,17 +11,12 @@ const maxValueColor = "#ffdd00"
 const currentValueColor = "#6faeff"
 const sensor = new Sensor(serverAddress)
 const display = new Display(serverAddress)
-const muiTheme = createTheme({
-    slider: {
-        selectionColor: textColor
-    }
-})
 
 function App() {
     const [hundredValues, setHundredValues] = React.useState([])
     const [displayBrightnessRange, setDisplayBrightnessRange] = React.useState([10, 100])
     const [sensorBrightnessRange, setSensorBrightnessRange] = React.useState([1, 500])
-    const [displayBrightness, setDisplayBrightness] = React.useState(50)
+    const [displayBrightness, setDisplayBrightness] = React.useState(100)
 
     React.useEffect(() => {
         Promise.all([
@@ -38,7 +33,7 @@ function App() {
             const maxBrightness = results[1].data
             const currentSensorLevel = results[2].data
             setSensorBrightnessRange([results[4].data, results[3].data])
-            setDisplayBrightnessRange([results[6].data, results[5].data])
+            setDisplayBrightnessRange([results[6].data * 100, results[5].data * 100])
             setDisplayBrightness(results[7].data * 100)
             setHundredValues(convertArrayToObjects(hundredValues, maxBrightness, currentSensorLevel))
         })
