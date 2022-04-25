@@ -17,6 +17,8 @@ function App() {
     const [displayBrightnessRange, setDisplayBrightnessRange] = React.useState([10, 100])
     const [sensorBrightnessRange, setSensorBrightnessRange] = React.useState([1, 500])
     const [displayBrightness, setDisplayBrightness] = React.useState(100)
+    const [averageInterval, setAverageInterval] = React.useState(100)
+    const [maxSensorBrightness,setMaxSensorBrightness] = React.useState(0)
 
     React.useEffect(() => {
         Promise.all([
@@ -28,6 +30,7 @@ function App() {
             display.getMaxBrightness(),
             display.getMinBrightness(),
             display.getBrightness(),
+            display.getIntervalLength()
         ]).then((results) => {
             const hundredValues = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
             const maxBrightness = results[1].data
@@ -35,6 +38,8 @@ function App() {
             setSensorBrightnessRange([results[4].data, results[3].data])
             setDisplayBrightnessRange([results[6].data * 100, results[5].data * 100])
             setDisplayBrightness(results[7].data * 100)
+            setAverageInterval(results[8].data)
+            setMaxSensorBrightness(maxBrightness)
             setHundredValues(convertArrayToObjects(hundredValues, maxBrightness, currentSensorLevel))
         })
     }, [])
@@ -73,7 +78,7 @@ function App() {
                             <Slider
                                 size="small"
                                 min={0}
-                                max={500}
+                                max={maxSensorBrightness}
                                 orientation="vertical"
                                 valueLabelDisplay="auto"
                                 value={sensorBrightnessRange}
@@ -97,6 +102,19 @@ function App() {
                                 onChangeCommitted={(e, value) => {
                                     display.setMinBrightness(value[0])
                                     display.setMaxBrightness(value[1])
+                                }}
+                            />
+                        </div>
+                        <div className="pl-9 pr-8">
+                            <Slider
+                                size="small"
+                                min={1}
+                                max={100}
+                                valueLabelDisplay="auto"
+                                value={averageInterval}
+                                onChange={(e, value) => setAverageInterval(value)}
+                                onChangeCommitted={(e, value) => {
+                                    display.setIntervalLength(value)
                                 }}
                             />
                         </div>

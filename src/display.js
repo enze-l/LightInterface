@@ -16,6 +16,12 @@ export default class Display {
     setMinBrightness(value){
         axios.post(this.serverAddress + "/display/min", value / 100).then()
     }
+    getIntervalLength() {
+        return axios.get(this.serverAddress + "/display/intervalLength")
+    }
+    setIntervalLength(value){
+        axios.post(this.serverAddress + "/display/intervalLength", value).then()
+    }
     getMaxBrightness() {
         return axios.get(this.serverAddress + "/display/max")
     }
