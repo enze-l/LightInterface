@@ -16,10 +16,11 @@ const display = new Display(serverAddress)
 function App() {
     const [hundredValues, setGraphData] = useState([])
     const [displayBrightnessRange, setDisplayBrightnessRange] = useState([10, 100])
-    const [sensorBrightnessRange, setSensorBrightnessRange] = useState([1, 500])
+    const [displayThresholdRange, setDisplayThresholdRange] = useState([1, 500])
     const [displayBrightness, setDisplayBrightness] = useState(100)
     const [averageInterval, setAverageInterval] = useState(100)
     const [maxSensorBrightness,setMaxSensorBrightness] = useState(0)
+    const [graphScaleY, setGraphScaleY] = useState(50)
     const [response, setResponse] = useState(null);
     const lastHundredValues = useRef([]);
     const sensorLevel = useRef();
@@ -39,11 +40,12 @@ function App() {
             lastHundredValues.current = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
             const maxBrightness = results[1].data
             sensorLevel.current = results[2].data
-            setSensorBrightnessRange([results[4].data, results[3].data])
+            setDisplayThresholdRange([results[4].data, results[3].data])
             setDisplayBrightnessRange([results[6].data * 100, results[5].data * 100])
             setDisplayBrightness(results[7].data * 100)
             setAverageInterval(results[8].data)
             setMaxSensorBrightness(maxBrightness)
+            reactToYAxisChange(maxBrightness, results[3].data)
             setGraphData(convertArrayToObjects(lastHundredValues.current, maxBrightness, sensorLevel.current))
         })
     }, [])
@@ -70,6 +72,10 @@ function App() {
         }
     }, [setResponse, maxSensorBrightness])
 
+    function reactToYAxisChange(value1, value2){
+        setGraphScaleY(Math.round(Math.max(value1, value2) * 1.15 ))
+    }
+
     function convertArrayToObjects(array, max, current) {
         let objectArray = []
         array.forEach(
@@ -91,7 +97,7 @@ function App() {
                                     <stop offset="95%" stopColor={graphColor} stopOpacity={0}/>
                                 </linearGradient>
                             </defs>
-                            <YAxis stroke={textColor}>
+                            <YAxis domain={[0, graphScaleY]} stroke={textColor}>
                                 <Label angle={-90} value="Brightness" fill={textColor} position='insideLeft'
                                        style={{textAnchor: 'middle'}}/>
                             </YAxis>
@@ -104,14 +110,17 @@ function App() {
                             <Slider
                                 size="small"
                                 min={0}
-                                max={maxSensorBrightness}
+                                max={graphScaleY}
                                 orientation="vertical"
                                 valueLabelDisplay="auto"
-                                value={sensorBrightnessRange}
-                                onChange={(e, value) => setSensorBrightnessRange(value)}
+                                value={displayThresholdRange}
+                                onChange={(e, value) => {
+                                    setDisplayThresholdRange(value)
+                                }}
                                 onChangeCommitted={(e, value) =>{
                                     display.setMinThreshold(value[0])
                                     display.setMaxThreshold(value[1])
+                                    reactToYAxisChange(value[1], maxSensorBrightness)
                                 }}
                             />
                         </div>
