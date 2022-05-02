@@ -1,8 +1,9 @@
 import {XAxis, YAxis, Area, Label, ComposedChart, Line} from "recharts";
 import {Box, Slider} from "@mui/material";
-import React from "react";
+import React, {useState, useEffect} from "react";
 import Sensor from "./sensor"
 import Display from "./display";
+import socketIOClient from "socket.io-client"
 
 const serverAddress = "http://localhost:3000"
 const textColor = "#6B7280"
@@ -13,14 +14,15 @@ const sensor = new Sensor(serverAddress)
 const display = new Display(serverAddress)
 
 function App() {
-    const [hundredValues, setHundredValues] = React.useState([])
-    const [displayBrightnessRange, setDisplayBrightnessRange] = React.useState([10, 100])
-    const [sensorBrightnessRange, setSensorBrightnessRange] = React.useState([1, 500])
-    const [displayBrightness, setDisplayBrightness] = React.useState(100)
-    const [averageInterval, setAverageInterval] = React.useState(100)
-    const [maxSensorBrightness,setMaxSensorBrightness] = React.useState(0)
+    const [hundredValues, setHundredValues] = useState([])
+    const [displayBrightnessRange, setDisplayBrightnessRange] = useState([10, 100])
+    const [sensorBrightnessRange, setSensorBrightnessRange] = useState([1, 500])
+    const [displayBrightness, setDisplayBrightness] = useState(100)
+    const [averageInterval, setAverageInterval] = useState(100)
+    const [maxSensorBrightness,setMaxSensorBrightness] = useState(0)
+    const [response, setResponse] = useState(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         Promise.all([
             sensor.getHundredValues(),
             sensor.getMaxBrightness(),
@@ -43,6 +45,17 @@ function App() {
             setHundredValues(convertArrayToObjects(hundredValues, maxBrightness, currentSensorLevel))
         })
     }, [])
+
+    useEffect(() => {
+        const socket = socketIOClient(serverAddress)
+        setResponse(socket);
+        socket.on("reading", () => {
+            console.log("reading")
+        })
+        return () => {
+            socket.off()
+        }
+    }, [setResponse ])
 
     function convertArrayToObjects(array, max, current) {
         let objectArray = []
