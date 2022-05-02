@@ -21,6 +21,9 @@ function App() {
     const [averageInterval, setAverageInterval] = useState(100)
     const [maxSensorBrightness,setMaxSensorBrightness] = useState(0)
     const [response, setResponse] = useState(null);
+    let lastHundredValues = [0];
+    let maxBrightness;
+    let currentSensorLevel;
 
     useEffect(() => {
         Promise.all([
@@ -34,28 +37,36 @@ function App() {
             display.getBrightness(),
             display.getIntervalLength()
         ]).then((results) => {
-            const hundredValues = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
-            const maxBrightness = results[1].data
-            const currentSensorLevel = results[2].data
+            lastHundredValues = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
+            maxBrightness = results[1].data
+            currentSensorLevel = results[2].data
             setSensorBrightnessRange([results[4].data, results[3].data])
             setDisplayBrightnessRange([results[6].data * 100, results[5].data * 100])
             setDisplayBrightness(results[7].data * 100)
             setAverageInterval(results[8].data)
             setMaxSensorBrightness(maxBrightness)
-            setHundredValues(convertArrayToObjects(hundredValues, maxBrightness, currentSensorLevel))
+            setHundredValues(convertArrayToObjects(lastHundredValues, maxBrightness, currentSensorLevel))
         })
     }, [])
 
     useEffect(() => {
         const socket = socketIOClient(serverAddress)
         setResponse(socket);
-        socket.on("reading", () => {
-            console.log("reading")
+        socket.on("reading", (msg) => {
+            const currentLevel = msg.toString()
+            if (currentLevel > maxBrightness){
+                maxBrightness = currentLevel;
+            }
+            const currentHundredValues = [...lastHundredValues]
+            currentHundredValues.shift()
+            currentHundredValues.push(currentLevel)
+            lastHundredValues = currentHundredValues
+            setHundredValues(convertArrayToObjects(lastHundredValues, maxBrightness, currentLevel))
         })
         return () => {
             socket.off()
         }
-    }, [setResponse ])
+    }, [setResponse])
 
     function convertArrayToObjects(array, max, current) {
         let objectArray = []
