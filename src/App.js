@@ -1,6 +1,6 @@
 import {XAxis, YAxis, Area, Label, ComposedChart, Line} from "recharts";
 import {Box, Slider} from "@mui/material";
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useRef} from "react";
 import Sensor from "./sensor"
 import Display from "./display";
 import socketIOClient from "socket.io-client"
@@ -14,16 +14,15 @@ const sensor = new Sensor(serverAddress)
 const display = new Display(serverAddress)
 
 function App() {
-    const [hundredValues, setHundredValues] = useState([])
+    const [hundredValues, setGraphData] = useState([])
     const [displayBrightnessRange, setDisplayBrightnessRange] = useState([10, 100])
     const [sensorBrightnessRange, setSensorBrightnessRange] = useState([1, 500])
     const [displayBrightness, setDisplayBrightness] = useState(100)
     const [averageInterval, setAverageInterval] = useState(100)
     const [maxSensorBrightness,setMaxSensorBrightness] = useState(0)
     const [response, setResponse] = useState(null);
-    let lastHundredValues = [0];
-    let maxBrightness;
-    let currentSensorLevel;
+    const lastHundredValues = useRef([]);
+    const sensorLevel = useRef();
 
     useEffect(() => {
         Promise.all([
@@ -37,15 +36,15 @@ function App() {
             display.getBrightness(),
             display.getIntervalLength()
         ]).then((results) => {
-            lastHundredValues = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
-            maxBrightness = results[1].data
-            currentSensorLevel = results[2].data
+            lastHundredValues.current = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
+            const maxBrightness = results[1].data
+            sensorLevel.current = results[2].data
             setSensorBrightnessRange([results[4].data, results[3].data])
             setDisplayBrightnessRange([results[6].data * 100, results[5].data * 100])
             setDisplayBrightness(results[7].data * 100)
             setAverageInterval(results[8].data)
             setMaxSensorBrightness(maxBrightness)
-            setHundredValues(convertArrayToObjects(lastHundredValues, maxBrightness, currentSensorLevel))
+            setGraphData(convertArrayToObjects(lastHundredValues.current, maxBrightness, sensorLevel.current))
         })
     }, [])
 
@@ -54,19 +53,22 @@ function App() {
         setResponse(socket);
         socket.on("reading", (msg) => {
             const currentLevel = msg.toString()
-            if (currentLevel > maxBrightness){
-                maxBrightness = currentLevel;
-            }
-            const currentHundredValues = [...lastHundredValues]
+            const currentHundredValues = [...lastHundredValues.current]
             currentHundredValues.shift()
             currentHundredValues.push(currentLevel)
-            lastHundredValues = currentHundredValues
-            setHundredValues(convertArrayToObjects(lastHundredValues, maxBrightness, currentLevel))
+            lastHundredValues.current = currentHundredValues
+            if (currentLevel > maxSensorBrightness){
+                setMaxSensorBrightness(msg)
+                setGraphData(convertArrayToObjects(lastHundredValues.current, currentLevel.toString(), currentLevel.toString()))
+
+            } else {
+                setGraphData(convertArrayToObjects(lastHundredValues.current, maxSensorBrightness, currentLevel.toString()))
+            }
         })
         return () => {
             socket.off()
         }
-    }, [setResponse])
+    }, [setResponse, maxSensorBrightness])
 
     function convertArrayToObjects(array, max, current) {
         let objectArray = []
@@ -94,7 +96,7 @@ function App() {
                                        style={{textAnchor: 'middle'}}/>
                             </YAxis>
                             <XAxis dataKey="brightness" stroke={textColor}/>
-                            <Area dot={false} type="monotone" dataKey="day" stroke={textColor} fill="url(#brightness)"/>
+                            <Area dot={false} isAnimationActive={false} type="monotone" dataKey="day" stroke={textColor} fill="url(#brightness)"/>
                             <Line dot={false} type="monotone" dataKey="max" stroke={maxValueColor}/>
                             <Line dot={false} type="monotone" dataKey="current" stroke={currentValueColor}/>
                         </ComposedChart>
