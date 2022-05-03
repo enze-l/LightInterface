@@ -43,4 +43,7 @@ export default class Display {
     setAuto(value){
         axios.post(this.serverAddress + "/display/auto", value).then()
     }
+    getAuto(){
+        return axios.get(this.serverAddress + "/display/auto")
+    }
 }

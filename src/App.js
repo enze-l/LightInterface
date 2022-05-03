@@ -48,7 +48,8 @@ function App() {
             display.getMaxBrightness(),
             display.getMinBrightness(),
             display.getBrightness(),
-            display.getIntervalLength()
+            display.getIntervalLength(),
+            display.getAuto()
         ]).then((results) => {
             lastHundredValues.current = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
             const maxBrightness = results[1].data
@@ -57,6 +58,8 @@ function App() {
             setDisplayBrightnessRange([results[6].data * 100, results[5].data * 100])
             setDisplayBrightness(results[7].data * 100)
             setAverageInterval(results[8].data)
+            setAutoSwitch(results[9].data)
+            console.log(results[9].data)
             setMaxSensorBrightness(maxBrightness)
             reactToYAxisChange(maxBrightness, results[3].data)
             setGraphData(convertArrayToObjects(lastHundredValues.current, maxBrightness, sensorLevel.current))
@@ -180,11 +183,13 @@ function App() {
                                     onChange={(e, value) => setDisplayBrightness(value)}
                                     onChangeCommitted={(e, value) => {
                                         display.setBrightness(value)
+                                        setAutoSwitch(false)
+                                        display.setAuto(false)
                                     }}
                                 />
                             </Box>
                             <div className="ml-5 mb-2 grid place-items-center">
-                                <Switch value={autoSwitch} onChange={changeAutoValue}/>
+                                <Switch checked={autoSwitch} onChange={changeAutoValue}/>
                             </div>
                         </div>
                     </div>
