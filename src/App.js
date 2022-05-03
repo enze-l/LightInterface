@@ -1,4 +1,4 @@
-import {XAxis, YAxis, Area, Label, ComposedChart, Line} from "recharts";
+import {XAxis, YAxis, Area, ComposedChart, Line} from "recharts";
 import {Box, Slider, Switch, ThemeProvider} from "@mui/material";
 import React, {useState, useEffect, useRef} from "react";
 import Sensor from "./sensor"
@@ -35,6 +35,7 @@ function App() {
     const [graphScaleY, setGraphScaleY] = useState(50)
     const [response, setResponse] = useState(null)
     const [autoSwitch, setAutoSwitch] = useState(false)
+    const [sensorIP, setSensorIP] = useState("")
     const lastHundredValues = useRef([]);
     const sensorLevel = useRef();
 
@@ -49,7 +50,8 @@ function App() {
             display.getMinBrightness(),
             display.getBrightness(),
             display.getIntervalLength(),
-            display.getAuto()
+            display.getAuto(),
+            sensor.getSensorIP(),
         ]).then((results) => {
             lastHundredValues.current = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
             const maxBrightness = results[1].data
@@ -59,7 +61,7 @@ function App() {
             setDisplayBrightness(results[7].data * 100)
             setAverageInterval(results[8].data)
             setAutoSwitch(results[9].data)
-            console.log(results[9].data)
+            setSensorIP(results[10].data)
             setMaxSensorBrightness(maxBrightness)
             reactToYAxisChange(maxBrightness, results[3].data)
             setGraphData(convertArrayToObjects(lastHundredValues.current, maxBrightness, sensorLevel.current))
@@ -101,8 +103,14 @@ function App() {
     }
 
     const changeAutoValue = (e, val) =>{
-        setAutoSwitch(val)
-        display.setAuto(val)
+        if(val) {
+            setAutoSwitch(true)
+            display.setAuto(true)
+        } else {
+            setAutoSwitch(false)
+            display.setBrightness(false)
+        }
+
     }
 
     return (
@@ -110,7 +118,7 @@ function App() {
             <div className="App">
                 <header className="App-header min-h-screen bg-gray-800">
                     <div className="grid place-items-center">
-                        <input id="ip" type="text" placeholder="Enter Sensor IP"
+                        <input id="ip" type="text" placeholder="Enter Sensor IP" defaultValue={sensorIP}
                                className="m-3 text-2xl text-white text-center bg-gray-800"/>
                         <div className="flex flex-row">
                             <ComposedChart width={500} height={300} data={hundredValues}>

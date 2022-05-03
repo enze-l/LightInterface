@@ -20,4 +20,12 @@ export default class Sensor {
     getMaxBrightness() {
         return axios.get(this.serverAddress + "/sensor/max")
     }
+
+    getSensorIP(){
+        return axios.get(this.serverAddress + "/sensor/ip")
+    }
+
+    setSensorIP(value){
+        axios.post(this.serverAddress + "/sensor/ip", value).then()
+    }
 }
