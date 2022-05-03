@@ -31,16 +31,16 @@ export default class Display {
     setMinThreshold(value) {
         axios.post(this.serverAddress + "/display/threshold/min", value).then()
     }
-
     getMinThreshold() {
         return axios.get(this.serverAddress + "/display/threshold/min")
     }
-
     setMaxThreshold(value) {
         axios.post(this.serverAddress + "/display/threshold/max", value).then()
     }
-
     getMaxThreshold() {
         return axios.get(this.serverAddress + "/display/threshold/max")
+    }
+    setAuto(value){
+        axios.post(this.serverAddress + "/display/auto", value).then()
     }
 }
