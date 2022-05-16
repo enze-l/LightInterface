@@ -107,8 +107,9 @@ function App() {
             setAutoSwitch(true)
             display.setAuto(true)
         } else {
+            display.setBrightness(displayBrightness)
             setAutoSwitch(false)
-            display.setBrightness(false)
+            display.setAuto(false)
         }
 
     }
