@@ -33,9 +33,7 @@ function App() {
     const [averageInterval, setAverageInterval] = useState(100)
     const [maxSensorBrightness, setMaxSensorBrightness] = useState(0)
     const [graphScaleY, setGraphScaleY] = useState(50)
-    const [response, setResponse] = useState(null)
     const [autoSwitch, setAutoSwitch] = useState(false)
-    const [sensorIP, setSensorIP] = useState("")
     const lastHundredValues = useRef([]);
     const sensorLevel = useRef();
 
@@ -51,7 +49,6 @@ function App() {
             display.getBrightness(),
             display.getIntervalLength(),
             display.getAuto(),
-            sensor.getSensorIP(),
         ]).then((results) => {
             lastHundredValues.current = String(results[0].data).split(/(\s+)/).filter(e => e.trim().length > 0)
             const maxBrightness = results[1].data
@@ -61,7 +58,6 @@ function App() {
             setDisplayBrightness(results[7].data * 100)
             setAverageInterval(results[8].data)
             setAutoSwitch(results[9].data)
-            setSensorIP(results[10].data)
             setMaxSensorBrightness(maxBrightness)
             reactToYAxisChange(maxBrightness, results[3].data)
             setGraphData(convertArrayToObjects(lastHundredValues.current, maxBrightness, sensorLevel.current))
@@ -70,7 +66,6 @@ function App() {
 
     useEffect(() => {
         const socket = socketIOClient(serverAddress)
-        setResponse(socket);
         socket.on("reading", (msg) => {
             const currentLevel = msg.toString()
             const currentHundredValues = [...lastHundredValues.current]
@@ -88,7 +83,7 @@ function App() {
         return () => {
             socket.off()
         }
-    }, [setResponse, maxSensorBrightness])
+    }, [maxSensorBrightness])
 
     function reactToYAxisChange(value1, value2) {
         setGraphScaleY(Math.round(Math.max(value1, value2) * 1.15))
@@ -102,8 +97,8 @@ function App() {
         return objectArray
     }
 
-    const changeAutoValue = (e, val) =>{
-        if(val) {
+    const changeAutoValue = (e, val) => {
+        if (val) {
             setAutoSwitch(true)
             display.setAuto(true)
         } else {
@@ -119,8 +114,6 @@ function App() {
             <div className="App">
                 <header className="App-header min-h-screen bg-gray-800">
                     <div className="grid place-items-center">
-                        <input id="ip" type="text" placeholder="Enter Sensor IP" defaultValue={sensorIP}
-                               className="m-3 text-2xl text-white text-center bg-gray-800"/>
                         <div className="flex flex-row">
                             <ComposedChart width={500} height={300} data={hundredValues}>
                                 <defs>
