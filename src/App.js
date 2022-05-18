@@ -31,7 +31,6 @@ function App() {
     const [displayThresholdRange, setDisplayThresholdRange] = useState([1, 500])
     const [displayBrightness, setDisplayBrightness] = useState(100)
     const [averageInterval, setAverageInterval] = useState(100)
-    const [value, setValue] = useState(100);
     const [maxSensorBrightness, setMaxSensorBrightness] = useState(0)
     const [graphScaleY, setGraphScaleY] = useState(50)
     const [autoSwitch, setAutoSwitch] = useState(false)
@@ -113,8 +112,7 @@ function App() {
     return (
         <ThemeProvider theme={theme}>
             <div className="App">
-                <header className="App-header min-h-screen bg-gray-800 pt-6">
-                    <title>Brightness-Control</title>
+                <header className="App-header min-h-screen bg-gray-800">
                     <div className="grid place-items-center">
                         <div className="flex flex-row">
                             <ComposedChart width={500} height={300} data={hundredValues}>
